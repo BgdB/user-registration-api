@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+    web:
+        build: .
+        environment:
+            - POSTGRES_DB_NAME=users
+            - POSTGRES_DB_USER=admin
+            - POSTGRES_DB_PASSWORD=password
+            - POSTGRES_DB_HOST=db
+            - EMAIL_SERVICE_API=http://fake-mail-server:1090/mock/
+        volumes:
+            - .:/app
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+            - fake-mail-server
+        restart: unless-stopped
+
+    tests:
+        build: .
+        command: python -m unittest
+        environment:
+            - EMAIL_SERVICE_API=http://dummy-api/
+        volumes:
+            - .:/app
+        restart: unless-stopped
+
+    db:
+        image: postgres
+        environment:
+            - POSTGRES_DB=users
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=password
+        ports:
+            - "5432:5432"
+        restart: unless-stopped
+
+    fake-mail-server:
+        image: reachfive/fake-api-server
+        ports:
+            - "1090:1090"
+        restart: unless-stopped
